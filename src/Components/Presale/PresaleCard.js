@@ -98,8 +98,8 @@ function PresaleCard() {
     <>
       <div className="card-box-2">
         <div className="card-content">
-          <h1>BUY $BIGNFTS ON PRESALE</h1>
-          <p className="symbol">1 $BIGNFTS = $1</p>
+          <h1>BUY <span className="yellow">$Zlato</span> ON PRESALE</h1>
+          <p className="symbol">1 $Zlato = $1</p>
           <ProgressBar />
           <CountDown />
           <div className="club">
@@ -129,7 +129,7 @@ function PresaleCard() {
                       placeholder="100,00,0"
                       name="number"
                     />
-                    <p className="num-p">$BIGNFT</p>
+                    <p className="num-p">$Zlato</p>
                   </div>
 
 
@@ -158,7 +158,7 @@ function PresaleCard() {
                 <p>Tokens Decimals</p>
                 <p className="sub-b-p">2</p>
             
-                <p>$BIGNFTs Balance</p>
+                <p>$Zlato's Balance</p>
                 <p className="sub-b-p">0</p>
               </div>
             </div>

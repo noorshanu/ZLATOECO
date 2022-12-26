@@ -24,7 +24,7 @@ function Card() {
       <div className="card-box">
         <div className="card-content">
           <h1>BUY <span className="yellow">$Zlato</span> ON PRESALE</h1>
-          <p className="symbol">1 $Zlato = $ 1</p>
+          <p className="symbol">1 $Zlato = $1</p>
           <ProgressBar />
           <div className="d-flex justify-content-center gap-4 mt-10">
             <a style={{ cursor: "pointer" }} className="connect-btn" onClick={gotoPresale}>
