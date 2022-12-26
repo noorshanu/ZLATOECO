@@ -1,0 +1,172 @@
+import React, { useContext, useEffect, useRef, useState } from "react";
+import "./Presale.css";
+import Down from '../../assets/down.png'
+import CountDown from "../Common/CountDown";
+import ProgressBar from "../Common/ProgressBar";
+import UserContext from "../../UserContext";
+import { ethers } from "ethers";
+import { TokenList } from "../../Constants/Constants";
+
+function PresaleCard() {
+  const { provider, contracts, account } = useContext(UserContext)
+  const [balances, setBalances] = useState({ BNB: 0 })
+  const tokenElement = useRef()
+  const nftAmountElement = useRef()
+
+  useEffect(() => {
+    if (!account) {
+      setBalances({
+        BNB: 0,
+        USDT: 0,
+        USDC: 0,
+        BUSD: 0,
+        DAI: 0,
+        IBAT: 0,
+      })
+    } else {
+      const getBNBBalance = async () => {
+        const balance = await provider.getBalance(account)
+        return ethers.utils.formatEther(balance)
+      }
+
+      const getTokenBalances = async (token) => {
+        console.log(token, " getting balance")
+        const balance = await contracts[token].balanceOf(account)
+        const decimals = (await contracts[token].decimals()).toNumber()
+        console.log("success")
+        return balance.div("1" + "0".repeat(decimals)).toNumber()
+      }
+
+      const getAllBalances = async () => {
+        const balances = { BNB: await getBNBBalance() }
+        for (const token of TokenList) {
+          balances[token] = await getTokenBalances(token)
+        }
+        setBalances(balances)
+      }
+
+      getAllBalances()
+    }
+
+  }, [account])
+
+  const buyNFT = async (e) => {
+    e.preventDefault();
+
+    if (!account) {
+      return
+    }
+
+    const token = tokenElement.current.value
+    const nftAmount = nftAmountElement.current.value
+
+    try {
+      let transaction = null;
+      if (token == "BNB") {
+        const bnbAmount = await contracts.Main.getBNBAmount(nftAmount)
+        console.log(bnbAmount.toString())
+        transaction = await contracts.Main.buyWithBNB(nftAmount, { value: bnbAmount.toString() })
+      } else if (token == "IBAT") {
+        const ibatAmount = await contracts.Main.getIBATAmount(nftAmount.toString())
+        const all = await contracts['IBAT'].allowance(account, contracts.Main.address)
+        console.log("allowance",all.toString())
+       if (all.toString() < ibatAmount.toString()) {
+        await contracts.IBAT.approve(contracts.Main.address, ibatAmount.toString())
+        } else {
+        transaction = await contracts.Main.buyWithIBAT(nftAmount.toString())
+        }
+      } else {
+        const tokenIndex = TokenList.indexOf(token)
+        const tokenAmount = await contracts.Main.getTokenAmount(nftAmount.toString(), tokenIndex)
+        const alla = await contracts[token].allowance(account, contracts.Main.address)
+        if (alla.toString() < tokenAmount.toString()) {
+        await contracts[token].approve(contracts.Main.address, tokenAmount.toString())
+        } else {
+        transaction = await contracts.Main.buyWithUSD(nftAmount.toString(), tokenIndex)
+        }
+      }
+      const tx_result = await transaction.wait()
+      alert(`Successfully bought domain. TX: ${tx_result.transactionHash}`)
+      console.log("transaction", tx_result.transactionHash)
+    } catch (error) {
+      alert("Error occured during transaction. Please check the browser console.\n" + error.reason)
+      console.error("Transaction Error:", error.reason)
+    }
+  }
+
+  return (
+    <>
+      <div className="card-box-2">
+        <div className="card-content">
+          <h1>BUY $BIGNFTS ON PRESALE</h1>
+          <p className="symbol">1 $BIGNFTS = $1</p>
+          <ProgressBar />
+          <CountDown />
+          <div className="club">
+            <div className="token-box">
+              <h2>Select Payment Token</h2>
+              <div className="">
+                <form>
+                  <div className="select-box">
+                    <p>
+                      IBAT <span className="red">10% discount</span>
+                    </p>
+                    <select id="cars" name="cars" ref={tokenElement}>
+                      <option value="BNB">Balance: {balances.BNB} BNB</option>
+                      {TokenList.map(((token, index) => (
+                        <option key={index} value={token}>Balance: {balances[token]} {token}</option>
+                      )))}
+                    </select>
+                  </div>
+                  <div className="text-center">
+                    <img src={Down} alt="" className="down" />
+
+                  </div>
+                  <div className="d-flex sec-num">
+                    <input ref={nftAmountElement}
+                      type="number"
+                      className="input-num"
+                      placeholder="100,00,0"
+                      name="number"
+                    />
+                    <p className="num-p">$BIGNFT</p>
+                  </div>
+
+
+                  <div className="btn-modal">
+                    <button
+                      type="button"
+                      className="buy-btn-token"
+                      onClick={buyNFT}
+                    >
+                      BUY NOW
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+            <div className="token-box-2">
+              <h2>Token Info</h2>
+              <div className="sub-box">
+                <p>Total Supply</p>
+                <p className="sub-b-p">100,000,000 </p>
+           
+                <p>Token Contract Address</p>
+                <p className="sub-b-p">0x19cd9b8e42d4ef62c3...</p>
+
+              
+                <p>Tokens Decimals</p>
+                <p className="sub-b-p">2</p>
+            
+                <p>$BIGNFTs Balance</p>
+                <p className="sub-b-p">0</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+export default PresaleCard;
