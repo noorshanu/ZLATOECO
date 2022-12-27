@@ -10,6 +10,7 @@ body {
 
   background-repeat: no-repeat;
   background-size: cover !important;
+  background-position: center;
 }
 .yellow{
  color: #CF9F00;
